@@ -1,0 +1,157 @@
+use Test;
+use lib 'lib';
+use Map::Mapnik;
+
+plan 34;
+
+# Test Map attributes - https://github.com/mapnik/mapnik/wiki/XMLConfigReference#map
+{
+    my $map = Mapnik::Map.new:
+        background-color => '#FFFFFF',
+        background-image => 'bg.png',
+        buffer-size => 128,
+        font-directory => '/usr/share/fonts',
+        maximum-extent => '-180,-90,180,90',
+        minimum-version => '3.0.0',
+        paths-from-xml => True,
+        srs => '+proj=latlong +datum=WGS84',
+        styles => [],
+        layers => [];
+
+    my $xml = $map.to-xml;
+    like $xml, / 'background-color="#FFFFFF"' /, 'Map: background-color';
+    like $xml, / 'background-image="bg.png"' /, 'Map: background-image';
+    like $xml, / 'buffer-size="128"' /, 'Map: buffer-size';
+    like $xml, / 'font-directory="/usr/share/fonts"' /, 'Map: font-directory';
+    like $xml, / 'maximum-extent="-180,-90,180,90"' /, 'Map: maximum-extent';
+    like $xml, / 'minimum-version="3.0.0"' /, 'Map: minimum-version';
+    like $xml, / 'paths-from-xml="' .* '"' /, 'Map: paths-from-xml';
+}
+
+# Test Style attributes - https://github.com/mapnik/mapnik/wiki/XMLConfigReference#style
+{
+    my $style = Mapnik::Style.new:
+        filter-mode => 'first',
+        name => 'test-style',
+        opacity => 0.75,
+        rules => [];
+
+    my $xml = $style.to-xml: :element;
+    like $xml, / 'filter-mode="first"' /, 'Style: filter-mode';
+    like $xml, / 'name="test-style"' /, 'Style: name';
+    like $xml, / 'opacity="0.75"' /, 'Style: opacity';
+}
+
+# Test Rule attributes - https://github.com/mapnik/mapnik/wiki/XMLConfigReference#rule
+{
+    my $rule = Mapnik::Rule.new:
+        name => 'test-rule',
+        title => 'Test Rule Title',
+        polygon-symbolizers => [],
+        line-symbolizers => [];
+
+    my $xml = $rule.to-xml: :element;
+    like $xml, / 'name="test-rule"' /, 'Rule: name';
+    like $xml, / 'title="Test Rule Title"' /, 'Rule: title';
+}
+
+# Test Layer attributes - https://github.com/mapnik/mapnik/wiki/XMLConfigReference#layer
+{
+    my $layer = Mapnik::Layer.new:
+        abstract => 'Test layer',
+        cache-features => 'on',
+        clear-label-cache => 'off',
+        minzoom => 0.0,
+        maxzoom => 18.0,
+        name => 'test-layer',
+        srs => '+proj=latlong +datum=WGS84',
+        status => 'on',
+        title => 'Test Layer',
+        queryable => 'true',
+        style-names => [],
+        datasources => [];
+
+    my $xml = $layer.to-xml: :element;
+    like $xml, / 'abstract="Test layer"' /, 'Layer: abstract';
+    like $xml, / 'cache-features="on"' /, 'Layer: cache-features';
+    like $xml, / 'clear-label-cache="off"' /, 'Layer: clear-label-cache';
+    like $xml, / 'minzoom="0' /, 'Layer: minzoom';
+    like $xml, / 'maxzoom="18' /, 'Layer: maxzoom';
+    like $xml, / 'name="test-layer"' /, 'Layer: name';
+    like $xml, / 'status="on"' /, 'Layer: status';
+    like $xml, / 'title="Test Layer"' /, 'Layer: title';
+    like $xml, / 'queryable="true"' /, 'Layer: queryable';
+}
+
+# Test Datasource attributes - https://github.com/mapnik/mapnik/wiki/XMLConfigReference#datasource
+{
+    my $datasource = Mapnik::Datasource.new:
+        name => 'my-datasource',
+        base => 'base-datasource',
+        parameters => [
+            Mapnik::Parameter.new(name => 'type', text => 'shape')
+        ];
+
+    my $xml = $datasource.to-xml: :element;
+    like $xml, / 'name="my-datasource"' /, 'Datasource: name';
+    like $xml, / 'base="base-datasource"' /, 'Datasource: base';
+}
+
+# Test MinScaleDenominator and MaxScaleDenominator - https://github.com/mapnik/mapnik/wiki/XMLConfigReference#rule
+{
+    my $rule = Mapnik::Rule.new:
+        min-scale-denominator => Mapnik::MinScaleDenominator.new(text => 1000),
+        max-scale-denominator => Mapnik::MaxScaleDenominator.new(text => 25000),
+        polygon-symbolizers => [],
+        line-symbolizers => [];
+
+    my $xml = $rule.to-xml: :element;
+    like $xml, / '<MinScaleDenominator>1000</MinScaleDenominator>' /, 'Rule: MinScaleDenominator';
+    like $xml, / '<MaxScaleDenominator>25000</MaxScaleDenominator>' /, 'Rule: MaxScaleDenominator';
+
+    # Test that scale denominators are optional
+    my $rule-no-scale = Mapnik::Rule.new:
+        polygon-symbolizers => [],
+        line-symbolizers => [];
+    my $xml-no-scale = $rule-no-scale.to-xml: :element;
+    unlike $xml-no-scale, / '<MinScaleDenominator>' /, 'Rule: MinScaleDenominator is optional';
+}
+
+# Test ElseFilter - https://github.com/mapnik/mapnik/wiki/ElseFilter
+{
+    my $rule-with-else = Mapnik::Rule.new:
+        else-filter => Mapnik::ElseFilter.new,
+        polygon-symbolizers => [],
+        line-symbolizers => [];
+
+    my $xml = $rule-with-else.to-xml: :element;
+    like $xml, / '<ElseFilter' /, 'Rule: ElseFilter element present';
+
+    # Test that ElseFilter is optional
+    my $rule-no-else = Mapnik::Rule.new:
+        polygon-symbolizers => [],
+        line-symbolizers => [];
+    my $xml-no-else = $rule-no-else.to-xml: :element;
+    unlike $xml-no-else, / '<ElseFilter' /, 'Rule: ElseFilter is optional';
+}
+
+# Test PointSymbolizer - https://github.com/mapnik/mapnik/wiki/PointSymbolizer
+{
+    my $point = Mapnik::PointSymbolizer.new:
+        file => '/path/to/marker.png',
+        allow-overlap => 'true',
+        opacity => 0.8,
+        transform => 'scale(2)',
+        ignore-placement => 'false',
+        comp-op => 'multiply';
+
+    my $xml = $point.to-xml: :element;
+    like $xml, / 'file="/path/to/marker.png"' /, 'PointSymbolizer: file';
+    like $xml, / 'allow-overlap="true"' /, 'PointSymbolizer: allow-overlap';
+    like $xml, / 'opacity="0.8"' /, 'PointSymbolizer: opacity';
+    like $xml, / 'transform="scale(2)"' /, 'PointSymbolizer: transform';
+    like $xml, / 'ignore-placement="false"' /, 'PointSymbolizer: ignore-placement';
+    like $xml, / 'comp-op="multiply"' /, 'PointSymbolizer: comp-op';
+}
+
+done-testing;

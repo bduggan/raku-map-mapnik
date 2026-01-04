@@ -1,0 +1,152 @@
+use Test;
+use lib 'lib';
+use Map::Mapnik;
+
+plan 25;
+
+# Test data
+my $srs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs";
+
+my @roads-datasources = Mapnik::Datasource.new(
+       parameters => [
+         Mapnik::Parameter.new( name => 'type', text => 'geojson' ),
+         Mapnik::Parameter.new( name => 'file', text => 'ulb_roads_real.geojson' ),
+       ]
+  );
+
+my @buildings-datasources = Mapnik::Datasource.new(
+       parameters => [
+         Mapnik::Parameter.new( name => 'type', text => 'geojson' ),
+         Mapnik::Parameter.new( name => 'file', text => 'ulb_buildings_real.geojson' ),
+       ]
+  );
+
+my $buildings = Mapnik::Layer.new:
+   name => 'buildings', :$srs, datasources => @buildings-datasources,
+   style-names => [
+     Mapnik::StyleName.new( text => 'buildings' ),
+     Mapnik::StyleName.new( text => 'university_buildings' )
+   ];
+my $roads = Mapnik::Layer.new: :$srs, datasources => @roads-datasources,
+   name => 'roads', style-names => [
+     Mapnik::StyleName.new( text => 'primary_roads' ),
+     Mapnik::StyleName.new( text => 'secondary_roads' ),
+     Mapnik::StyleName.new( text => 'tertiary_roads' ),
+     Mapnik::StyleName.new( text => 'paths' )
+   ];
+
+# Primary roads style
+my $primary-roads-style = Mapnik::Style.new: name => 'primary_roads',
+  rules => [
+    Mapnik::Rule.new:
+      filter => Mapnik::Filter.new(text => "[highway] = 'primary' or [highway] = 'primary_link'"),
+      line-symbolizers => [
+        Mapnik::LineSymbolizer.new: stroke => '#FFA500', stroke-width => '5',
+          stroke-linecap => 'round', stroke-linejoin => 'round'
+      ]
+  ];
+
+# Secondary roads style
+my $secondary-roads-style = Mapnik::Style.new: name => 'secondary_roads',
+  rules => [
+    Mapnik::Rule.new:
+      filter => Mapnik::Filter.new(text => "[highway] = 'secondary' or [highway] = 'secondary_link'"),
+      line-symbolizers => [
+        Mapnik::LineSymbolizer.new: stroke => '#FFD700', stroke-width => '4',
+          stroke-linecap => 'round', stroke-linejoin => 'round'
+      ]
+  ];
+
+# Tertiary roads style
+my $tertiary-roads-style = Mapnik::Style.new: name => 'tertiary_roads',
+  rules => [
+    Mapnik::Rule.new:
+      filter => Mapnik::Filter.new(text => "[highway] = 'tertiary' or [highway] = 'residential' or [highway] = 'unclassified'"),
+      line-symbolizers => [
+        Mapnik::LineSymbolizer.new: stroke => '#FFFFFF', stroke-width => '3',
+          stroke-linecap => 'round', stroke-linejoin => 'round'
+      ]
+  ];
+
+# Paths style
+my $paths-style = Mapnik::Style.new: name => 'paths',
+  rules => [
+    Mapnik::Rule.new:
+      filter => Mapnik::Filter.new(text => "[highway] = 'footway' or [highway] = 'path' or [highway] = 'cycleway' or [highway] = 'pedestrian'"),
+      line-symbolizers => [
+        Mapnik::LineSymbolizer.new: stroke => '#C8C8C8', stroke-width => '1.5',
+          stroke-linecap => 'round', stroke-dasharray => '3,2'
+      ]
+  ];
+
+# Buildings style
+my $buildings-style = Mapnik::Style.new: name => 'buildings',
+  rules => [
+    Mapnik::Rule.new:
+      polygon-symbolizers => [
+        Mapnik::PolygonSymbolizer.new: fill => '#D4A574', fill-opacity => '0.9'
+      ],
+      line-symbolizers => [
+        Mapnik::LineSymbolizer.new: stroke => '#8B6914', stroke-width => '0.8'
+      ]
+  ];
+
+# University buildings style
+my $university-buildings-style = Mapnik::Style.new: name => 'university_buildings',
+  rules => [
+    Mapnik::Rule.new:
+      filter => Mapnik::Filter.new(text => "[building] = 'university'"),
+      polygon-symbolizers => [
+        Mapnik::PolygonSymbolizer.new: fill => '#C8B4A0', fill-opacity => '0.95'
+      ],
+      line-symbolizers => [
+        Mapnik::LineSymbolizer.new: stroke => '#654321', stroke-width => '1.2'
+      ]
+  ];
+
+my $m = Mapnik::Map.new: background-color => '#E8F4F8', :$srs,
+  styles => [ $primary-roads-style, $secondary-roads-style, $tertiary-roads-style,
+              $paths-style, $buildings-style, $university-buildings-style ],
+  layers => [ $roads, $buildings ];
+
+# Generate XML
+my $generated-xml = $m.to-xml;
+
+# Tests
+ok $generated-xml, 'Generated XML is defined';
+like $generated-xml, / '<Map' /, 'Contains Map element';
+like $generated-xml, / 'background-color="#E8F4F8"' /, 'Map has correct background color';
+like $generated-xml, / 'srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"' /, 'Map has correct SRS';
+
+# Test all styles are present
+like $generated-xml, / '<Style name="primary_roads">' /, 'Contains primary_roads style';
+like $generated-xml, / '<Style name="secondary_roads">' /, 'Contains secondary_roads style';
+like $generated-xml, / '<Style name="tertiary_roads">' /, 'Contains tertiary_roads style';
+like $generated-xml, / '<Style name="paths">' /, 'Contains paths style';
+like $generated-xml, / '<Style name="buildings">' /, 'Contains buildings style';
+like $generated-xml, / '<Style name="university_buildings">' /, 'Contains university_buildings style';
+
+# Test filters
+like $generated-xml, / '<Filter>[highway] = ' .* 'primary' /, 'Primary roads filter exists';
+like $generated-xml, / '<Filter>[building] = ' .* 'university' /, 'University buildings filter exists';
+
+# Test symbolizer attributes for roads
+like $generated-xml, / 'stroke="#FFA500"' /, 'Primary roads have orange color';
+like $generated-xml, / 'stroke="#FFD700"' /, 'Secondary roads have gold color';
+like $generated-xml, / 'stroke="#FFFFFF"' /, 'Tertiary roads have white color';
+like $generated-xml, / 'stroke-linecap="round"' /, 'Roads have round linecap';
+like $generated-xml, / 'stroke-dasharray="3,2"' /, 'Paths have dasharray';
+
+# Test symbolizer attributes for buildings
+like $generated-xml, / 'fill="#D4A574"' /, 'Buildings have correct fill color';
+like $generated-xml, / 'fill-opacity="0.9"' /, 'Buildings have correct fill opacity';
+like $generated-xml, / 'fill="#C8B4A0"' /, 'University buildings have correct fill color';
+like $generated-xml, / 'fill-opacity="0.95"' /, 'University buildings have correct fill opacity';
+
+# Test layers and datasources
+like $generated-xml, / '<Layer' .* 'name="roads"' /, 'Roads layer exists';
+like $generated-xml, / '<Layer' .* 'name="buildings"' /, 'Buildings layer exists';
+like $generated-xml, / 'ulb_roads_real.geojson' /, 'Roads datasource is correct';
+like $generated-xml, / 'ulb_buildings_real.geojson' /, 'Buildings datasource is correct';
+
+done-testing;
