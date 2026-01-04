@@ -50,10 +50,14 @@ This is a module for generating XML for the mapnik XML interface.
 
 The syntax of this is described here: https://github.com/mapnik/mapnik/wiki/XMLConfigReference
 
+The classes provided mirror the XML structure described there. Most of the work is done by [XML::Class](XML::Class), which provides the xml rendering based on class definitions.
+
 SEE ALSO
 ========
 
 https://github.com/mapnik/mapnik
+
+[XML::Class](XML::Class)
 
 AUTHOR
 ======
