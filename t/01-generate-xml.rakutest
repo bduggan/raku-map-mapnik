@@ -41,7 +41,7 @@ my $primary-roads-style = Mapnik::Style.new: name => 'primary_roads',
     Mapnik::Rule.new:
       filter => Mapnik::Filter.new(text => "[highway] = 'primary' or [highway] = 'primary_link'"),
       line-symbolizers => [
-        Mapnik::LineSymbolizer.new: stroke => '#FFA500', stroke-width => '5',
+        Mapnik::LineSymbolizer.new: stroke => '#FFA500', stroke-width => 5.0,
           stroke-linecap => 'round', stroke-linejoin => 'round'
       ]
   ];
@@ -52,7 +52,7 @@ my $secondary-roads-style = Mapnik::Style.new: name => 'secondary_roads',
     Mapnik::Rule.new:
       filter => Mapnik::Filter.new(text => "[highway] = 'secondary' or [highway] = 'secondary_link'"),
       line-symbolizers => [
-        Mapnik::LineSymbolizer.new: stroke => '#FFD700', stroke-width => '4',
+        Mapnik::LineSymbolizer.new: stroke => '#FFD700', stroke-width => 4.0,
           stroke-linecap => 'round', stroke-linejoin => 'round'
       ]
   ];
@@ -63,7 +63,7 @@ my $tertiary-roads-style = Mapnik::Style.new: name => 'tertiary_roads',
     Mapnik::Rule.new:
       filter => Mapnik::Filter.new(text => "[highway] = 'tertiary' or [highway] = 'residential' or [highway] = 'unclassified'"),
       line-symbolizers => [
-        Mapnik::LineSymbolizer.new: stroke => '#FFFFFF', stroke-width => '3',
+        Mapnik::LineSymbolizer.new: stroke => '#FFFFFF', stroke-width => 3.0,
           stroke-linecap => 'round', stroke-linejoin => 'round'
       ]
   ];
@@ -74,7 +74,7 @@ my $paths-style = Mapnik::Style.new: name => 'paths',
     Mapnik::Rule.new:
       filter => Mapnik::Filter.new(text => "[highway] = 'footway' or [highway] = 'path' or [highway] = 'cycleway' or [highway] = 'pedestrian'"),
       line-symbolizers => [
-        Mapnik::LineSymbolizer.new: stroke => '#C8C8C8', stroke-width => '1.5',
+        Mapnik::LineSymbolizer.new: stroke => '#C8C8C8', stroke-width => 1.5,
           stroke-linecap => 'round', stroke-dasharray => '3,2'
       ]
   ];
@@ -84,10 +84,10 @@ my $buildings-style = Mapnik::Style.new: name => 'buildings',
   rules => [
     Mapnik::Rule.new:
       polygon-symbolizers => [
-        Mapnik::PolygonSymbolizer.new: fill => '#D4A574', fill-opacity => '0.9'
+        Mapnik::PolygonSymbolizer.new: fill => '#D4A574', fill-opacity => 0.9
       ],
       line-symbolizers => [
-        Mapnik::LineSymbolizer.new: stroke => '#8B6914', stroke-width => '0.8'
+        Mapnik::LineSymbolizer.new: stroke => '#8B6914', stroke-width => 0.8
       ]
   ];
 
@@ -97,10 +97,10 @@ my $university-buildings-style = Mapnik::Style.new: name => 'university_building
     Mapnik::Rule.new:
       filter => Mapnik::Filter.new(text => "[building] = 'university'"),
       polygon-symbolizers => [
-        Mapnik::PolygonSymbolizer.new: fill => '#C8B4A0', fill-opacity => '0.95'
+        Mapnik::PolygonSymbolizer.new: fill => '#C8B4A0', fill-opacity => 0.95
       ],
       line-symbolizers => [
-        Mapnik::LineSymbolizer.new: stroke => '#654321', stroke-width => '1.2'
+        Mapnik::LineSymbolizer.new: stroke => '#654321', stroke-width => 1.2
       ]
   ];
 

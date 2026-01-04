@@ -5,5 +5,3 @@ plan 1;
 
 use-ok 'Map::Mapnik';
 
-1;
-
