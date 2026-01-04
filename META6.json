@@ -1,0 +1,24 @@
+{
+  "name" : "Map::Mapnik",
+  "authors" : [
+    "Brian Duggan"
+  ],
+  "provides" : {
+    "Map::Mapnik" : "lib/Map/Mapnik.rakumod"
+  },
+  "build-depends" : [ ],
+  "depends" : [
+    "XML::Class:ver<0.0.11>"
+  ],
+  "description" : "Generate Mapnik XML Configurations",
+  "tags" : [
+    "GIS",
+    "XML",
+    "Mapnik"
+  ],
+  "license" : "Artistic-2.0",
+  "raku" : "6.*",
+  "version" : "0.0.1",
+  "auth" : "zef:bduggan",
+  "source-url" : "git://github.com/bduggan/raku-map-mapnik.git"
+}
