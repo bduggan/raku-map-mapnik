@@ -2,7 +2,7 @@ use Test;
 use lib 'lib';
 use Map::Mapnik;
 
-plan 34;
+plan 58;
 
 # Test Map attributes - https://github.com/mapnik/mapnik/wiki/XMLConfigReference#map
 {
@@ -57,7 +57,7 @@ plan 34;
 
 # Test Layer attributes - https://github.com/mapnik/mapnik/wiki/XMLConfigReference#layer
 {
-    my $layer = Mapnik::Layer.new:
+    my $layer = Mapnik::Layer.new(
         abstract => 'Test layer',
         cache-features => 'on',
         clear-label-cache => 'off',
@@ -69,7 +69,8 @@ plan 34;
         title => 'Test Layer',
         queryable => 'true',
         style-names => [],
-        datasources => [];
+        datasources => []
+    );
 
     my $xml = $layer.to-xml: :element;
     like $xml, / 'abstract="Test layer"' /, 'Layer: abstract';
@@ -152,6 +153,90 @@ plan 34;
     like $xml, / 'transform="scale(2)"' /, 'PointSymbolizer: transform';
     like $xml, / 'ignore-placement="false"' /, 'PointSymbolizer: ignore-placement';
     like $xml, / 'comp-op="multiply"' /, 'PointSymbolizer: comp-op';
+}
+
+# Test TextSymbolizer - https://github.com/mapnik/mapnik/wiki/TextSymbolizer
+{
+    my $text = Mapnik::TextSymbolizer.new:
+        text => '[name]',
+        face-name => 'DejaVu Sans Book',
+        size => 12,
+        fill => '#000000',
+        opacity => 0.9,
+        halo-fill => '#FFFFFF',
+        halo-radius => 1.5,
+        placement => 'line',
+        dx => 5.0,
+        dy => -2.0,
+        horizontal-alignment => 'middle',
+        vertical-alignment => 'bottom',
+        allow-overlap => 'false',
+        comp-op => 'src-over';
+
+    my $xml = $text.to-xml: :element;
+    like $xml, / '<TextSymbolizer' /, 'TextSymbolizer: element present';
+    like $xml, / '>[name]</TextSymbolizer>' /, 'TextSymbolizer: text content';
+    like $xml, / 'face-name="DejaVu Sans Book"' /, 'TextSymbolizer: face-name';
+    like $xml, / 'size="12"' /, 'TextSymbolizer: size';
+    like $xml, / 'fill="#000000"' /, 'TextSymbolizer: fill';
+    like $xml, / 'opacity="0.9"' /, 'TextSymbolizer: opacity';
+    like $xml, / 'halo-fill="#FFFFFF"' /, 'TextSymbolizer: halo-fill';
+    like $xml, / 'halo-radius="1.5"' /, 'TextSymbolizer: halo-radius';
+    like $xml, / 'placement="line"' /, 'TextSymbolizer: placement';
+    like $xml, / 'dx="5' /, 'TextSymbolizer: dx';
+    like $xml, / 'dy="-2' /, 'TextSymbolizer: dy';
+    like $xml, / 'horizontal-alignment="middle"' /, 'TextSymbolizer: horizontal-alignment';
+    like $xml, / 'vertical-alignment="bottom"' /, 'TextSymbolizer: vertical-alignment';
+    like $xml, / 'allow-overlap="false"' /, 'TextSymbolizer: allow-overlap';
+}
+
+# Test Font - https://get-map.org/mapnik-lost-manual/book/_font.html
+{
+    my $font = Mapnik::Font.new:
+        face-name => 'DejaVu Sans Book';
+
+    my $xml = $font.to-xml: :element;
+    like $xml, / '<Font' /, 'Font: element present';
+    like $xml, / 'face-name="DejaVu Sans Book"' /, 'Font: face-name';
+}
+
+# Test FontSet - https://get-map.org/mapnik-lost-manual/book/_fontset.html
+{
+    my $fontset = Mapnik::FontSet.new:
+        name => 'book-fonts',
+        fonts => [
+            Mapnik::Font.new(face-name => 'DejaVu Sans Book'),
+            Mapnik::Font.new(face-name => 'Noto Sans Regular'),
+            Mapnik::Font.new(face-name => 'Noto Sans CJK JP Regular')
+        ];
+
+    my $xml = $fontset.to-xml: :element;
+    like $xml, / '<FontSet' /, 'FontSet: element present';
+    like $xml, / 'name="book-fonts"' /, 'FontSet: name';
+    like $xml, / '<Font face-name="DejaVu Sans Book"' /, 'FontSet: contains first font';
+    like $xml, / '<Font face-name="Noto Sans Regular"' /, 'FontSet: contains second font';
+    like $xml, / '<Font face-name="Noto Sans CJK JP Regular"' /, 'FontSet: contains third font';
+    like $xml, / '</FontSet>' /, 'FontSet: closing tag';
+}
+
+# Test Map with FontSet
+{
+    my $map = Mapnik::Map.new:
+        background-color => '#FFFFFF',
+        srs => '+proj=latlong +datum=WGS84',
+        fontsets => [
+            Mapnik::FontSet.new:
+                name => 'main-fonts',
+                fonts => [
+                    Mapnik::Font.new(face-name => 'DejaVu Sans Book')
+                ]
+        ],
+        styles => [],
+        layers => [];
+
+    my $xml = $map.to-xml;
+    like $xml, / '<FontSet name="main-fonts">' /, 'Map: contains FontSet';
+    like $xml, / '<Font face-name="DejaVu Sans Book"' /, 'Map: FontSet contains Font';
 }
 
 done-testing;

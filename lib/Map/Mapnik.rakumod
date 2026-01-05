@@ -1,6 +1,17 @@
 use XML::Class;
 unit module Mapnik;
 
+# https://get-map.org/mapnik-lost-manual/book/_font.html
+class Font does XML::Class[xml-element => 'Font'] {
+    has Str $.face-name is xml-attribute;                          # font face name
+}
+
+# https://get-map.org/mapnik-lost-manual/book/_fontset.html
+class FontSet does XML::Class[xml-element => 'FontSet'] {
+    has Str $.name is xml-attribute;                               # fontset identifier
+    has Font @.fonts;
+}
+
 # https://github.com/mapnik/mapnik/wiki/XMLConfigReference#datasource
 class Parameter does XML::Class[xml-element => 'Parameter'] {
     has Str $.name is xml-attribute;
@@ -41,6 +52,47 @@ class PointSymbolizer does XML::Class[xml-element => 'PointSymbolizer'] {
     has Str $.comp-op is xml-attribute is xml-skip-null;
 }
 
+# https://github.com/mapnik/mapnik/wiki/TextSymbolizer
+class TextSymbolizer does XML::Class[xml-element => 'TextSymbolizer'] {
+    has Str $.text is xml-simple-content;                                  # field name for text (e.g., "[name]")
+    has Str $.face-name is xml-attribute is xml-skip-null;                 # font face name
+    has Str $.fontset-name is xml-attribute is xml-skip-null;              # fontset name
+    has Int $.size is xml-attribute is xml-skip-null;                      # font size, default: 10
+    has Str $.fill is xml-attribute is xml-skip-null;                      # text color, default: black
+    has Rat $.opacity is xml-attribute is xml-skip-null;                   # text opacity, default: 1.0
+    has Str $.halo-fill is xml-attribute is xml-skip-null;                 # halo color
+    has Rat $.halo-radius is xml-attribute is xml-skip-null;               # halo size, default: 0
+    has Str $.halo-comp-op is xml-attribute is xml-skip-null;              # halo composite operation
+    has Str $.placement is xml-attribute is xml-skip-null;                 # point, line, vertex, interior, default: point
+    has Rat $.dx is xml-attribute is xml-skip-null;                        # horizontal offset, default: 0
+    has Rat $.dy is xml-attribute is xml-skip-null;                        # vertical offset, default: 0
+    has Str $.horizontal-alignment is xml-attribute is xml-skip-null;      # left, middle, right, auto
+    has Str $.vertical-alignment is xml-attribute is xml-skip-null;        # top, middle, bottom, auto
+    has Str $.justify-alignment is xml-attribute is xml-skip-null;         # left, center, right, auto
+    has Rat $.text-ratio is xml-attribute is xml-skip-null;                # height to width ratio, default: 0
+    has Int $.wrap-width is xml-attribute is xml-skip-null;                # text wrapping width, default: 0
+    has Str $.wrap-before is xml-attribute is xml-skip-null;               # wrap before wrap-width, default: false
+    has Str $.wrap-character is xml-attribute is xml-skip-null;            # character to use for wrapping
+    has Rat $.orientation is xml-attribute is xml-skip-null;               # rotate text, default: 0
+    has Str $.rotate-displacement is xml-attribute is xml-skip-null;       # rotate displacement, default: false
+    has Int $.character-spacing is xml-attribute is xml-skip-null;         # additional horizontal spacing, default: 0
+    has Int $.line-spacing is xml-attribute is xml-skip-null;              # vertical spacing between lines, default: 0
+    has Str $.text-transform is xml-attribute is xml-skip-null;            # none, uppercase, lowercase, capitalize
+    has Str $.allow-overlap is xml-attribute is xml-skip-null;             # default: false
+    has Str $.avoid-edges is xml-attribute is xml-skip-null;               # default: false
+    has Int $.margin is xml-attribute is xml-skip-null;                    # minimum distance from other labels, default: 0
+    has Int $.repeat-distance is xml-attribute is xml-skip-null;           # minimum distance between repeated labels, default: 0
+    has Int $.minimum-padding is xml-attribute is xml-skip-null;           # prevent placement near edge, default: 0
+    has Int $.minimum-path-length is xml-attribute is xml-skip-null;       # minimum path length for placement, default: 0
+    has Int $.spacing is xml-attribute is xml-skip-null;                   # space between repeated labels, default: 0
+    has Str $.clip is xml-attribute is xml-skip-null;                      # clip geometry to view, default: true
+    has Str $.largest-bbox-only is xml-attribute is xml-skip-null;         # label only largest polygon, default: true
+    has Str $.placement-type is xml-attribute is xml-skip-null;            # dummy, simple, list
+    has Str $.placements is xml-attribute is xml-skip-null;                # placement positions string
+    has Str $.upright is xml-attribute is xml-skip-null;                   # left, right, auto, left_only, right_only
+    has Str $.comp-op is xml-attribute is xml-skip-null;                   # composite operation
+}
+
 # https://github.com/mapnik/mapnik/wiki/Filter
 class Filter does XML::Class[xml-element => 'Filter'] {
     has Str $.text is xml-simple-content;
@@ -71,6 +123,7 @@ class Rule does XML::Class[xml-element => 'Rule'] {
     has PointSymbolizer @.point-symbolizers;
     has PolygonSymbolizer @.polygon-symbolizers;
     has LineSymbolizer @.line-symbolizers;
+    has TextSymbolizer @.text-symbolizers;
 }
 
 # https://github.com/mapnik/mapnik/wiki/XMLConfigReference#style
@@ -112,6 +165,7 @@ class Map does XML::Class[xml-element => 'Map'] {
     has Str $.minimum-version is xml-attribute is xml-skip-null;
     has Bool $.paths-from-xml is xml-attribute is xml-skip-null;    # default: true
     has Str $.srs is xml-attribute is xml-skip-null;
+    has FontSet @.fontsets;
     has Style @.styles;
     has Layer @.layers;
 }

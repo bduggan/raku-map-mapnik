@@ -10,16 +10,18 @@ my $map = Mapnik::Map.new:
          line-symbolizers => [ Mapnik::LineSymbolizer.new: stroke => 'rgb(50%,50%,50%)', stroke-width => 0.1 ],
      ],
   layers => [
-    Mapnik::Layer.new: name => "world", :$srs,
-    style-names => [
-      Mapnik::StyleName.new( text => "My Style"),
-    ],
-    datasources => [
-      Mapnik::Datasource.new: parameters =>  [
-        Mapnik::Parameter.new( name => 'type', text => 'shape' ),
-        Mapnik::Parameter.new: name => 'file', text => 'ne_110m_admin_0_countries.shp'
+    Mapnik::Layer.new(
+      name => "world", :$srs,
+      style-names => [
+        Mapnik::StyleName.new( text => "My Style"),
+      ],
+      datasources => [
+        Mapnik::Datasource.new: parameters =>  [
+          Mapnik::Parameter.new( name => 'type', text => 'shape' ),
+          Mapnik::Parameter.new: name => 'file', text => 'ne_110m_admin_0_countries.shp'
+        ]
       ]
-    ]
+    )
   ],
 ;
 

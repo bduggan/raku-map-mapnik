@@ -21,19 +21,22 @@ my @buildings-datasources = Mapnik::Datasource.new(
        ]
   );
 
-my $buildings = Mapnik::Layer.new:
+my $buildings = Mapnik::Layer.new(
    name => 'buildings', :$srs, datasources => @buildings-datasources,
    style-names => [
      Mapnik::StyleName.new( text => 'buildings' ),
      Mapnik::StyleName.new( text => 'university_buildings' )
-   ];
-my $roads = Mapnik::Layer.new: :$srs, datasources => @roads-datasources,
+   ]
+);
+my $roads = Mapnik::Layer.new(
+   :$srs, datasources => @roads-datasources,
    name => 'roads', style-names => [
      Mapnik::StyleName.new( text => 'primary_roads' ),
      Mapnik::StyleName.new( text => 'secondary_roads' ),
      Mapnik::StyleName.new( text => 'tertiary_roads' ),
      Mapnik::StyleName.new( text => 'paths' )
-   ];
+   ]
+);
 
 # Primary roads style
 my $primary-roads-style = Mapnik::Style.new: name => 'primary_roads',
