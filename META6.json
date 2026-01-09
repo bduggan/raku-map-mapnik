@@ -8,7 +8,7 @@
   },
   "build-depends" : [ ],
   "depends" : [
-    "XML::Class:ver<0.0.21>"
+    "XML::Class:ver<0.0.11>"
   ],
   "description" : "Generate Mapnik XML Configurations",
   "tags" : [
